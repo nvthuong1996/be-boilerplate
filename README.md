@@ -17,3 +17,12 @@
 
 #### Các vấn đề khi phát triển populate
 [Tham khảo Featherjs Populate](https://blog.feathersjs.com/feathers-populate-hooks-a-voyage-from-back-then-to-next-f3f95a0dcf38)
+
+
+#### Dependency pattern
+
+Các khái niệm đầy đủ về di bắt nguồn từ một thư viện của java provider,consumer,component,connector
+
+https://cungdev.com/gioi-thieu-ve-dagger-2-phan-1/
+
+https://dagger.dev/
