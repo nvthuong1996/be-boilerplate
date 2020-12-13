@@ -1,10 +1,51 @@
-import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
+import './boilerplate.polyfill';
+
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { I18nJsonParser, I18nModule } from 'nestjs-i18n';
+import * as path from 'path';
+
+import { contextMiddleware } from './middlewares';
+import { AuthModule } from './modules/auth/auth.module';
+import { UserModule } from './modules/user/user.module';
+import { ConfigService } from './shared/services/config.service';
+import { SharedModule } from './shared/shared.module';
 
 @Module({
-  imports: [],
-  controllers: [AppController],
-  providers: [AppService],
+    imports: [
+        AuthModule,
+        UserModule,
+        TypeOrmModule.forRootAsync({
+            imports: [SharedModule],
+            useFactory: (configService: ConfigService) =>
+                configService.typeOrmConfig,
+            inject: [ConfigService],
+        }),
+        I18nModule.forRootAsync({
+            useFactory: (configService: ConfigService) => ({
+                fallbackLanguage: configService.fallbackLanguage,
+                parserOptions: {
+                    path: path.join(__dirname, '/i18n/'),
+                    watch: configService.isDevelopment,
+                },
+            }),
+            imports: [SharedModule],
+            parser: I18nJsonParser,
+            inject: [ConfigService],
+        }),
+    ],
+    providers: [],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+    configure(consumer: MiddlewareConsumer): MiddlewareConsumer | void {
+        consumer.apply(contextMiddleware).forRoutes('*');
+        // const getEnfoce = async () => {
+        //     const enforcer = await newEnforcer(
+        //         join(__dirname, 'casbin_conf/model.conf'),
+        //         join(__dirname, 'casbin_conf/policy.csv'),
+        //     );
+        //     return enforcer;
+        // };
+        // consumer.apply(authz(getEnfoce)).forRoutes('*');
+    }
+}
